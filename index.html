@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusBank Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-start: #0B111E;
+            --bg-end: #111827;
+            --glass-bg: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #F3F4F6;
+            --text-secondary: #9CA3AF;
+            --primary: #3B82F6;
+            --primary-hover: #2563EB;
+            --active-bg: rgba(16, 185, 129, 0.15);
+            --active-text: #34D399;
+            --inactive-bg: rgba(156, 163, 175, 0.15);
+            --inactive-text: #9CA3AF;
+            --overdrawn-bg: rgba(245, 158, 11, 0.15);
+            --overdrawn-text: #FBBF24;
+            --alert-bg: rgba(239, 68, 68, 0.15);
+            --alert-text: #F87171;
+            --font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dashboard-container {
+            width: 95%;
+            max-width: 1400px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+            padding: 24px;
+        }
+
+        /* Glassmorphism Panel Base */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            padding: 24px;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .brand {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #60A5FA, #A78BFA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 16px 0;
+            letter-spacing: -1px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            font-family: var(--font-family);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-dark {
+            background: rgba(17, 24, 39, 0.6);
+            color: var(--text-primary);
+            border-color: var(--glass-border);
+        }
+
+        .btn-dark:hover {
+            background: rgba(31, 41, 55, 0.8);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: -8px;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        /* Dropdown specific */
+        .dropdown-container {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 110%;
+            left: 0;
+            width: 100%;
+            background: #1E293B;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 50;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .dropdown-container.active .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60A5FA;
+        }
+
+        /* Main Panel Styling */
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .widgets-container {
+            display: flex;
+            gap: 16px;
+        }
+
+        .widget {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .widget-title {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .widget-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .alert-text {
+            color: var(--alert-text);
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Trend Sparkline Mockup */
+        .sparkline {
+            width: 100px;
+            height: 24px;
+            background: url('data:image/svg+xml;utf8,<svg width="100" height="24" viewBox="0 0 100 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 20 L20 15 L40 18 L60 8 L80 12 L100 2" stroke="%2360A5FA" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center center;
+        }
+
+        /* Table Styling */
+        .table-wrapper {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            padding: 16px 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        td {
+            padding: 16px 20px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .acc-number {
+            font-family: monospace;
+            color: var(--text-secondary);
+        }
+
+        .acc-name {
+            font-weight: 600;
+            color: white;
+        }
+
+        .balance {
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .badge.active {
+            background: var(--active-bg);
+            color: var(--active-text);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge.inactive {
+            background: var(--inactive-bg);
+            color: var(--inactive-text);
+            border: 1px solid rgba(156, 163, 175, 0.2);
+        }
+
+        .badge.overdrawn {
+            background: var(--overdrawn-bg);
+            color: var(--overdrawn-text);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .badge-icon {
+            font-size: 10px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: #1E293B;
+            border: 1px solid var(--glass-border);
+            padding: 32px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal h3 {
+            margin: 0 0 24px 0;
+            font-size: 20px;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: white;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            border-left: 4px solid var(--primary);
+            color: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 200;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error { border-left-color: var(--alert-text); }
+        .notification.success { border-left-color: var(--active-text); }
+
+        /* Cinematic Splash Screen */
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0B111E;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-in-out;
+            will-change: opacity;
+        }
+
+        #splashScreen.fade-out {
+            opacity: 0;
+        }
+
+        .splash-logo {
+            font-size: 56px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -2px;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: logoPulse 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            will-change: transform, opacity;
+        }
+
+        @keyframes logoPulse {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+                text-shadow: 0 0 0 rgba(167, 139, 250, 0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1.1);
+                text-shadow: 0 0 30px rgba(167, 139, 250, 0.8), 0 0 60px rgba(96, 165, 250, 0.6);
+            }
+        }
+
+        /* Dashboard Staggered Reveal */
+        .sidebar {
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            will-change: transform, opacity;
+        }
+
+        .main-panel {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition-delay: 0.2s;
+            will-change: transform, opacity;
+        }
+
+        .sidebar.animate-in, .main-panel.animate-in {
+            opacity: 1;
+            transform: translate(0, 0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Splash Screen Intro -->
+    <div id="splashScreen">
+        <div class="splash-logo">NexusBank</div>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <!-- Left Sidebar -->
+        <aside class="glass-panel sidebar">
+            <h1 class="brand">NexusBank</h1>
+            
+            <button class="btn btn-dark" onclick="refreshData()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.92-12.28l5.67 5.67"/></svg>
+                Refresh Accounts
+            </button>
+            <div class="status-text">
+                Last updated: Just now<br>
+                (File Check: OK)
+            </div>
+
+            <button class="btn btn-primary" style="justify-content: space-between; margin-top: auto;" onclick="openModal('addAccountModal')">
+                <span>Add Account</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+
+            <div class="dropdown-container" id="transactionDropdown">
+                <button class="btn btn-primary" style="width: 100%; justify-content: space-between;" onclick="toggleDropdown(event)">
+                    <span>Process Transaction</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                </button>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item" onclick="openModal('transactionModal', 1)">Deposit Funds</div>
+                    <div class="dropdown-item" onclick="openModal('transactionModal', 2)">Withdraw Funds</div>
+                    <div class="dropdown-item" onclick="showNotification('Transfers coming soon!', 'error')">Transfer Funds</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Panel -->
+        <main class="glass-panel main-panel">
+            
+            <div class="header-section">
+                <h2 class="page-title">Active Accounts Directory</h2>
+                <div class="widgets-container">
+                    <div class="widget">
+                        <div class="widget-title">NexusBank Volume</div>
+                        <div class="sparkline"></div>
+                    </div>
+                    <div class="widget">
+                        <div class="widget-title">Total Assets</div>
+                        <div class="widget-value" id="totalAssets">₹5,26,200.88</div>
+                        <div class="alert-text">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            Alerts: <span id="overdrawnCount">1</span> Overdrawn
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Account #</th>
+                            <th>Name</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accountsBody">
+                        <!-- Sample data that gets replaced by API -->
+                        <tr>
+                            <td class="acc-number">104928</td>
+                            <td class="acc-name">Acme Corp Ltd.</td>
+                            <td class="balance">₹3,42,500.00</td>
+                            <td><div class="badge active"><span class="badge-icon">●</span> Active</div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="addAccountModal">
+        <div class="modal">
+            <h3>Add New Account</h3>
+            <form id="addAccountForm" onsubmit="addAccount(event)">
+                <div class="form-group">
+                    <label>Account Number</label>
+                    <input type="number" id="newAccNum" required>
+                </div>
+                <div class="form-group">
+                    <label>Account Name</label>
+                    <input type="text" id="newAccName" required>
+                </div>
+                <div class="form-group">
+                    <label>Initial Balance</label>
+                    <input type="number" step="0.01" min="0" id="newAccBalance" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-dark" onclick="closeModal('addAccountModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="transactionModal">
+        <div class="modal">
+            <h3>Process Transaction</h3>
+            <form id="transactionForm" onsubmit="processTransaction(event)">
+                <div class="form-group">
+                    <label>Account Number</label>
+                    <input type="number" id="transAccNum" required>
+                </div>
+                <div class="form-group">
+                    <label>Transaction Type</label>
+                    <div class="radio-group" style="display: flex; gap: 10px;">
+                        <label style="flex: 1; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; cursor: pointer; border: 1px solid var(--glass-border); margin: 0;">
+                            <input type="radio" name="transType" value="1" id="typeDeposit" checked style="width: auto; margin: 0;">
+                            <span style="color: white; font-size: 14px;">Deposit</span>
+                        </label>
+                        <label style="flex: 1; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; cursor: pointer; border: 1px solid var(--glass-border); margin: 0;">
+                            <input type="radio" name="transType" value="2" id="typeWithdraw" style="width: auto; margin: 0;">
+                            <span style="color: white; font-size: 14px;">Withdrawal</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" step="0.01" min="0.01" id="transAmount" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-dark" onclick="closeModal('transactionModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Process</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="notification" id="notification">Message</div>
+
+    <script>
+        const API_URL = ''; 
+        const inrFormatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
+
+        // UI Interactions
+        function toggleDropdown(e) {
+            e.stopPropagation();
+            document.getElementById('transactionDropdown').classList.toggle('active');
+        }
+
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('transactionDropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        function openModal(id, type = null) {
+            document.getElementById(id).classList.add('active');
+            if (type !== null && id === 'transactionModal') {
+                if (type === 1) document.getElementById('typeDeposit').checked = true;
+                if (type === 2) document.getElementById('typeWithdraw').checked = true;
+            }
+            const dropdown = document.getElementById('transactionDropdown');
+            if (dropdown) dropdown.classList.remove('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            if (id === 'addAccountModal') document.getElementById('addAccountForm').reset();
+            if (id === 'transactionModal') document.getElementById('transactionForm').reset();
+        }
+
+        function showNotification(msg, type = 'success') {
+            const el = document.getElementById('notification');
+            el.textContent = msg;
+            el.className = 'notification ' + type + ' show';
+            setTimeout(() => { el.classList.remove('show'); }, 3000);
+        }
+
+        // API Integration
+        async function refreshData() {
+            const btn = document.querySelector('.btn-dark svg');
+            if(btn) {
+                btn.style.transform = 'rotate(180deg)';
+                btn.style.transition = 'transform 0.5s ease';
+                setTimeout(() => { btn.style.transform = 'rotate(0deg)'; }, 500);
+            }
+            
+            try {
+                const res = await fetch(API_URL + '/api/accounts');
+                if (!res.ok) throw new Error("Failed");
+                const data = await res.json();
+                
+                const tbody = document.getElementById('accountsBody');
+                if (data.accounts && data.accounts.length > 0) {
+                    tbody.innerHTML = '';
+                    let totalAssets = 0;
+                    let overdrawnCount = 0;
+
+                    data.accounts.forEach(acc => {
+                        totalAssets += acc.balance;
+                        if(acc.balance < 0) overdrawnCount++;
+
+                        const tr = document.createElement('tr');
+                        let badgeClass = 'active';
+                        let badgeHtml = '<span class="badge-icon">●</span> Active';
+                        
+                        if (acc.status === 'Inactive') {
+                            badgeClass = 'inactive';
+                            badgeHtml = '<span class="badge-icon">●</span> Inactive';
+                        }
+                        
+                        if (acc.balance < 0) {
+                            badgeClass = 'overdrawn';
+                            badgeHtml = '<svg class="badge-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Overdrawn';
+                        }
+
+                        tr.innerHTML = `
+                            <td class="acc-number">${acc.account_number}</td>
+                            <td class="acc-name">${acc.name}</td>
+                            <td class="balance" style="${acc.balance < 0 ? 'color: #F87171;' : ''}">${inrFormatter.format(acc.balance)}</td>
+                            <td><div class="badge ${badgeClass}">${badgeHtml}</div></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    // Update dashboard widgets dynamically
+                    document.getElementById('totalAssets').textContent = inrFormatter.format(totalAssets);
+                    document.getElementById('overdrawnCount').textContent = overdrawnCount;
+                }
+            } catch (err) {
+                console.error(err);
+                // Keep sample data if connection fails for visual demo purposes
+            }
+        }
+
+        async function addAccount(e) {
+            e.preventDefault();
+            const data = {
+                account_number: parseInt(document.getElementById('newAccNum').value),
+                name: document.getElementById('newAccName').value,
+                balance: parseFloat(document.getElementById('newAccBalance').value)
+            };
+
+            try {
+                const res = await fetch(API_URL + '/api/accounts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await res.json();
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                    closeModal('addAccountModal');
+                    refreshData();
+                } else {
+                    showNotification(result.message || 'Error', 'error');
+                }
+            } catch (err) {
+                showNotification('Connection failed.', 'error');
+            }
+        }
+
+        async function processTransaction(e) {
+            e.preventDefault();
+            let selectedType = 1;
+            if (document.getElementById('typeWithdraw').checked) selectedType = 2;
+            
+            const data = {
+                account_number: parseInt(document.getElementById('transAccNum').value),
+                type: selectedType,
+                amount: parseFloat(document.getElementById('transAmount').value)
+            };
+
+            try {
+                const res = await fetch(API_URL + '/api/transaction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await res.json();
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                    closeModal('transactionModal');
+                    refreshData();
+                } else {
+                    showNotification(result.message || 'Error', 'error');
+                }
+            } catch (err) {
+                showNotification('Connection failed.', 'error');
+            }
+        }
+
+        // Splash Screen & Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshData(); // Fetch data in background during intro
+            
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                splash.classList.add('fade-out');
+                
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    document.querySelector('.sidebar').classList.add('animate-in');
+                    document.querySelector('.main-panel').classList.add('animate-in');
+                }, 800); // Wait for fade out
+            }, 2500); // 2.5s hold time
+        });
+    </script>
+</body>
+</html>
